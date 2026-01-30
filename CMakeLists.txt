@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.13)
+project(space_invaders)
+
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
+
+find_package(X11 REQUIRED)
+
+add_executable(space_invaders
+        src/main.c
+)
+target_link_libraries(space_invaders PRIVATE X11::X11)
