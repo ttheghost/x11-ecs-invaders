@@ -1,5 +1,6 @@
 #include "x11_wrapper.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 XHandler *create_handler(const char* window_name, const unsigned int w, const unsigned int h) {
   XHandler *handler = malloc(sizeof(XHandler));
@@ -15,6 +16,14 @@ XHandler *create_handler(const char* window_name, const unsigned int w, const un
   );
   handler->gc = XCreateGC(handler->display, handler->window, 0, NULL);
   handler->buffer = XCreatePixmap(handler->display, handler->window, w, h, DefaultDepth(handler->display, handler->screen));
+  handler->font = XLoadQueryFont(handler->display, "-*-helvetica-bold-r-*-*-24-*-*-*-*-*-*-*");
+  if (!handler->font) {
+    fprintf(stderr, "Warning: Large font not found, falling back to fixed.\n");
+    handler->font = XLoadQueryFont(handler->display, "fixed");
+  }
+  if (handler->font) {
+    XSetFont(handler->display, handler->gc, handler->font->fid);
+  }
   XSelectInput(handler->display, handler->window, ExposureMask | KeyPressMask | KeyReleaseMask | StructureNotifyMask);
   XStoreName(handler->display, handler->window, window_name);
   XMapWindow(handler->display, handler->window);
@@ -35,6 +44,15 @@ void begin_draw(const XHandler *handler) {
 
 void draw_rectangle(const XHandler *handler, const int x, const int y, const unsigned int w, const unsigned int h) {
   XFillRectangle(handler->display, handler->buffer, handler->gc, x, y, w, h);
+}
+
+void draw_text(const XHandler *handler, const char *text, const int len, int x, int y) {
+  if (!handler->font) return;
+  int text_width = XTextWidth(handler->font, text, len);
+  int text_height = handler->font->ascent + handler->font->descent;
+  int draw_x = x - (text_width / 2);
+  int draw_y = y + (text_height / 2);
+  XDrawString(handler->display, handler->buffer, handler->gc, draw_x, draw_y, text, len);
 }
 
 void end_draw(const XHandler *handler) {
@@ -85,6 +103,8 @@ XColor create_color(const XHandler *handler, unsigned short red, unsigned short 
 }
 
 void destroy_handler(XHandler *handler) {
+  if (!handler) return;
+  if (handler->font) XFreeFont(handler->display, handler->font);
   XFreeGC(handler->display, handler->gc);
   XDestroyWindow(handler->display, handler->window);
   XCloseDisplay(handler->display);

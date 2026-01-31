@@ -51,10 +51,32 @@ void system_render(const World *world, const XHandler *handler) {
       draw_rectangle(handler, world->x[i], world->y[i], world->width[i], world->height[i]);
     }
   }
+  if (world->game_over) {
+    set_color(handler, WhitePixel(handler->display, handler->screen));
+    draw_rectangle(handler, 0, 0, world->screen_width, world->screen_height);
+    set_color(handler, BlackPixel(handler->display, handler->screen));
+    draw_text(handler, "GAME OVER", 9, world->screen_width/2, world->screen_height/2);
+    draw_text(handler, "Press ESC to Quit", 17, world->screen_width/2, world->screen_height/2 + 40);
+  }
   end_draw(handler);
 }
 
 void system_input(World* world, const Colors *cs) {
+  if (world->game_over) {
+    if (world->key_escape) {
+      world->running = 1;
+      world->game_over = 0;
+      world->key_escape = 0;
+      for (int i = 0; i < MAX_ENTITIES; i++) {
+        if (world->mask[i] & COMPONENT_PLAYER) {
+          world->x[i] = 320; world->y[i] = 400;
+        } else {
+          ecs_destroy_entity(world, i);
+        }
+      }
+      spawn_swarm(world, &cs);
+    }
+  };
   for (int i = 0; i < MAX_ENTITIES; i++) {
     if (world->mask[i] & COMPONENT_PLAYER) {
       world->vx[i] = 0;
@@ -76,6 +98,9 @@ void system_enemy_ai(World* world) {
         (world->x[i] + world->width[i] >= world->screen_width && world->vx[i] > 0)) {
         hit_edge = 1;
         break;
+      }
+      if (world->y[i] >= 400) {
+        world->game_over = 1;
       }
     }
   }
@@ -111,6 +136,7 @@ int main() {
           if (keysym == XK_Left) w->key_left = 1;
           if (keysym == XK_Right) w->key_right = 1;
           if (keysym == XK_space) w->key_fire = 1;
+          if (keysym == XK_Escape) w->key_escape = 1;
           break;
         }
         case KeyRelease: {
@@ -125,6 +151,7 @@ int main() {
           if (keysym == XK_Left) w->key_left = 0;
           if (keysym == XK_Right) w->key_right = 0;
           if (keysym == XK_space) w->key_fire = 0;
+          if (keysym == XK_Escape) w->key_escape = 0;
           break;
         }
         default: break;
@@ -132,9 +159,11 @@ int main() {
     }
 
     system_input(w, &cs);
-    system_movement(w, dt);
-    system_collision(w);
-    system_enemy_ai(w);
+    if (!w->game_over) {
+      system_movement(w, dt);
+      system_collision(w);
+      system_enemy_ai(w);
+    }
     system_render(w, handler);
     // printf("Delta time %.3f, fps: %.1f\n", dt, 1/dt);
     usleep(1000); // 1 ms

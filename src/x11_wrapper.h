@@ -7,6 +7,7 @@ typedef struct {
   int screen;
   GC gc;
   Pixmap buffer;
+  XFontStruct *font;
   unsigned int width, height;
 } XHandler;
 
@@ -21,6 +22,8 @@ void wait_for_window_map(const XHandler *handler);
 void begin_draw(const XHandler *handler);
 
 void draw_rectangle(const XHandler *handler, int x, int y, unsigned int w, unsigned int h);
+
+void draw_text(const XHandler *handler, const char *text, const int len, int x, int y);
 
 void end_draw(const XHandler *handler);
 

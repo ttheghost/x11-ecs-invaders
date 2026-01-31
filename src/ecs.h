@@ -34,6 +34,7 @@ typedef struct {
   int key_left;
   int key_right;
   int key_fire;
+  int key_escape;
 } World;
 
 World* ecs_init(int screen_width, int screen_height);
