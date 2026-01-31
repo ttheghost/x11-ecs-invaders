@@ -24,8 +24,6 @@ void system_collision(World* w) {
       if (w->x[i] < 0 || w->x[i] > w->screen_width
         || w->y[i] < 0 || w->y[i] > w->screen_height) {
         ecs_destroy_entity(w, i);
-        printf("Boom (%f, %f)\n", w->x[i], w->y[i]);
-        fflush(stdout);
       }
     }
     if (w->mask[i] & COMPONENT_BULLET) {
@@ -54,6 +52,20 @@ void system_render(const World *world, const XHandler *handler) {
   }
 }
 
+void system_input(World* world) {
+  for (int i = 0; i < MAX_ENTITIES; i++) {
+    if (world->mask[i] & COMPONENT_PLAYER) {
+      world->vx[i] = 0;
+      if (world->key_left) world->vx[i] = -200;
+      if (world->key_right) world->vx[i] = 200;
+      if (world->key_fire) {
+        spawn_bullet(world, world->x[i] + 17, world->y[i]);
+        world->key_fire = 0;
+      }
+    }
+  }
+}
+
 int main() {
   World *w = ecs_init(640, 480);
   int player = spawn_player(w, 320, 400);
@@ -74,33 +86,23 @@ int main() {
       switch (event.type) {
         case KeyPress: {
           const KeySym keysym = XLookupKeysym(&event.xkey, 0);
-          if (keysym == XK_a || keysym == XK_Left) {
-            if (w->x[player] - 10 >= 0) w->x[player] -= 10;
-          } else if (keysym == XK_d || keysym == XK_Right) {
-            if (w->x[player] + 50 <= 640) w->x[player] += 10;
-          } else if (keysym == XK_q || keysym == XK_Escape) {
-            w->running = 0;
-          } else if (keysym == XK_space) {
-            // shut
-            int b = ecs_create_entity(w);
-            if (b == -1) {
-              printf("Failed to create entity\n");
-              exit(1);
-            }
-            w->mask[b] = COMPONENT_SPRITE | COMPONENT_VEL | COMPONENT_POS | COMPONENT_BULLET | COMPONENT_COLLIDER;
-            w->x[b] = w->x[player] + 17;
-            w->y[b] = w->y[player];
-            w->vx[b] = 0;
-            w->vy[b] = -500;
-            w->width[b] = 6;
-            w->height[b] = 10;
-          }
+          if (keysym == XK_Left) w->key_left = 1;
+          if (keysym == XK_Right) w->key_right = 1;
+          if (keysym == XK_space) w->key_fire = 1;
+          break;
+        }
+        case KeyRelease: {
+          const KeySym keysym = XLookupKeysym(&event.xkey, 0);
+          if (keysym == XK_Left) w->key_left = 0;
+          if (keysym == XK_Right) w->key_right = 0;
+          if (keysym == XK_space) w->key_fire = 0;
           break;
         }
         default: break;
       }
     }
 
+    system_input(w);
     system_movement(w, dt);
     system_collision(w);
     system_render(w, handler);

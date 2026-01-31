@@ -29,6 +29,10 @@ typedef struct {
   int running;
   int screen_width;
   int screen_height;
+
+  int key_left;
+  int key_right;
+  int key_fire;
 } World;
 
 World* ecs_init(int screen_width, int screen_height);

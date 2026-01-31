@@ -9,24 +9,41 @@ int spawn_player(World *world, const int x, const int y) {
     fprintf(stderr, "Failed to create player entity\n");
     exit(-1);
   }
-  world->mask[p] = COMPONENT_PLAYER | COMPONENT_POS | COMPONENT_SPRITE;
+  world->mask[p] = COMPONENT_PLAYER | COMPONENT_POS | COMPONENT_SPRITE | COMPONENT_VEL;
   world->x[p] = x; world->y[p] = y;
   world->width[p] = 40; world->height[p] = 10;
   return p;
 }
 
 void spawn_swarm(World *world) {
-  for (int i = 0; i < 6; i++) {
-    const int a = ecs_create_entity(world);
-    if (a == -1) {
-      fprintf(stderr, "Failed to create alien entity\n");
-      exit(-1);
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 11; j++) {
+      const int a = ecs_create_entity(world);
+      if (a == -1) {
+        fprintf(stderr, "Failed to create alien entity\n");
+        exit(-1);
+      }
+      world->mask[a] = COMPONENT_ENEMY | COMPONENT_SPRITE | COMPONENT_POS | COMPONENT_COLLIDER | COMPONENT_VEL;
+      world->x[a] = 40.0 * j + 20; world->y[a] = 40 * i + 20;
+      world->vy[a] = 5; world->vx[a] = 0;
+      world->width[a] = 30; world->height[a] = 30;
     }
-    world->mask[a] = COMPONENT_ENEMY | COMPONENT_SPRITE | COMPONENT_POS | COMPONENT_COLLIDER | COMPONENT_VEL;
-    world->x[a] = 40.0 * i + 40; world->y[a] = 20;
-    world->vy[a] = 20; world->vx[a] = 0;
-    world->width[a] = 30; world->height[a] = 30;
   }
+}
+
+void spawn_bullet(World *world, const int x, const int y) {
+  const int b = ecs_create_entity(world);
+  if (b == -1) {
+    printf("Failed to create entity\n");
+    exit(1);
+  }
+  world->mask[b] = COMPONENT_SPRITE | COMPONENT_VEL | COMPONENT_POS | COMPONENT_BULLET | COMPONENT_COLLIDER;
+  world->x[b] = x;
+  world->y[b] = y;
+  world->vx[b] = 0;
+  world->vy[b] = -500;
+  world->width[b] = 6;
+  world->height[b] = 10;
 }
 
 double get_delta_time() {

@@ -13,7 +13,7 @@ XHandler *create_handler(const char* window_name, const unsigned int w, const un
     BlackPixel(handler->display, handler->screen)
   );
   handler->gc = XCreateGC(handler->display, handler->window, 0, NULL);
-  XSelectInput(handler->display, handler->window, ExposureMask | KeyPressMask | StructureNotifyMask);
+  XSelectInput(handler->display, handler->window, ExposureMask | KeyPressMask | KeyReleaseMask | StructureNotifyMask);
   XStoreName(handler->display, handler->window, window_name);
   XMapWindow(handler->display, handler->window);
   return handler;

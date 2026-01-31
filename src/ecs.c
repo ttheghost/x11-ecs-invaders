@@ -1,8 +1,10 @@
 #include "ecs.h"
 #include <stdlib.h>
+#include <string.h>
 
 World* ecs_init(const int screen_width, const int screen_height) {
   World* world = malloc(sizeof(World));
+  memset(world, 0, sizeof(World));
   world->screen_width = screen_width;
   world->screen_height = screen_height;
   return world;
