@@ -21,8 +21,8 @@ void system_movement(World* w, const double dt) {
 void system_collision(World* w) {
   for (int i = 0; i < MAX_ENTITIES; i++) {
     if (w->mask[i] & COMPONENT_POS) {
-      if (w->x[i] < 0 || w->x[i] > w->screen_width
-        || w->y[i] < 0 || w->y[i] > w->screen_height) {
+      if (w->x[i] < -1 || w->x[i] > w->screen_width
+        || w->y[i] < -1 || w->y[i] > w->screen_height) {
         ecs_destroy_entity(w, i);
       }
     }
@@ -61,6 +61,27 @@ void system_input(World* world) {
       if (world->key_fire) {
         spawn_bullet(world, world->x[i] + 17, world->y[i]);
         world->key_fire = 0;
+      }
+    }
+  }
+}
+
+void system_enemy_ai(World* world) {
+  int hit_edge = 0;
+  for (int i = 0; i < MAX_ENTITIES; i++) {
+    if (world->mask[i] & COMPONENT_ENEMY) {
+      if ((world->x[i] <= 0 && world->vx[i] < 0) ||
+        (world->x[i] + world->width[i] >= world->screen_width && world->vx[i] > 0)) {
+        hit_edge = 1;
+        break;
+      }
+    }
+  }
+  if (hit_edge) {
+    for (int i = 0; i < MAX_ENTITIES; i++) {
+      if (world->mask[i] & COMPONENT_ENEMY) {
+        world->vx[i] *= -1;
+        world->y[i] += 20;
       }
     }
   }
@@ -105,6 +126,7 @@ int main() {
     system_input(w);
     system_movement(w, dt);
     system_collision(w);
+    system_enemy_ai(w);
     system_render(w, handler);
     // printf("Delta time %.3f, fps: %.1f\n", dt, 1/dt);
     usleep(1000); // 1 ms

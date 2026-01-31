@@ -24,8 +24,8 @@ void spawn_swarm(World *world) {
         exit(-1);
       }
       world->mask[a] = COMPONENT_ENEMY | COMPONENT_SPRITE | COMPONENT_POS | COMPONENT_COLLIDER | COMPONENT_VEL;
-      world->x[a] = 40.0 * j + 20; world->y[a] = 40 * i + 20;
-      world->vy[a] = 5; world->vx[a] = 0;
+      world->x[a] = 40.0 * j; world->y[a] = 40.0 * i + 20;
+      world->vx[a] = 60; world->vy[a] = 0;
       world->width[a] = 30; world->height[a] = 30;
     }
   }
