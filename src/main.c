@@ -1,13 +1,11 @@
 #include "x11_wrapper.h"
+#include "ecs.h"
+#include "factory.h"
 #include <X11/keysym.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-#include "../include/ecs.h"
-#include "../include/factory.h"
-
-// extern int usleep (__useconds_t);
+#define TARGET_FRAME_TIME_MICRO 16667 // 16.666 ms = 60 FPS
 
 void system_movement(World* w, const double dt) {
   for (int i = 0; i < MAX_ENTITIES; i++) {
@@ -139,8 +137,11 @@ int main() {
   set_color(handler, cs.green.pixel);
   int player = spawn_player(w, 320, 400, &cs);
   spawn_swarm(w, &cs);
+  long start_time = get_time_micro();
+  long end_time = start_time;
   while (w->running) {
-    double dt = get_delta_time();
+    start_time = get_time_micro();
+    const double dt = (double)(start_time - end_time) / 1000000.0;
     if (dt > 1) continue;
 
     while (XPending(handler->display)) {
@@ -180,8 +181,11 @@ int main() {
       system_enemy_ai(w);
     }
     system_render(w, handler, dt);
-    // sleep for a 60 FPS
-    usleep(16666);
+    end_time = get_time_micro();
+    long time_to_wait = TARGET_FRAME_TIME_MICRO - (end_time - start_time);
+    if (time_to_wait > 0) {
+      usleep(time_to_wait);
+    }
   }
   destroy_handler(handler);
   ecs_destroy(w);

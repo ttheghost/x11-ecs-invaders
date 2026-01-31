@@ -49,12 +49,8 @@ void spawn_bullet(World *world, const int x, const int y, const Colors *cs) {
   world->color[b] = cs->red.pixel;
 }
 
-double get_delta_time() {
-  static double last = 0;
+long get_time_micro() {
   struct timespec cur;
   timespec_get(&cur, TIME_UTC);
-  const double now = (double)cur.tv_sec + (double)cur.tv_nsec / 1e9;
-  const double delta = now - last;
-  last = now;
-  return delta;
+  return cur.tv_sec * 1000000 + cur.tv_nsec / 1000;
 }
