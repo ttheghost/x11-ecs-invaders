@@ -21,6 +21,13 @@ You need the X11 development headers installed.
 
 ```bash
 sudo apt install libx11-dev
+sudo apt install libxpm-dev
+```
+
+**Fedora/CentOS**
+
+```bash
+sudo dnf install libXpm-devel
 ```
 
 ### Build & Run:

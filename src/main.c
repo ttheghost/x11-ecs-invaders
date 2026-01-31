@@ -4,6 +4,7 @@
 #include <X11/keysym.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <time.h>
 
 #define TARGET_FRAME_TIME_MICRO 16667 // 16.666 ms = 60 FPS
 
@@ -46,8 +47,12 @@ void system_render(const World *world, const XHandler *handler, const double dt)
   begin_draw(handler);
   for (int i = 0; i < MAX_ENTITIES; i++) {
     if (world->mask[i] & COMPONENT_SPRITE) {
+      if (world->mask[i] & COMPONENT_ENEMY) {
+        draw_sprite(handler, (int)world->x[i], (int)world->y[i]);
+        continue;
+      }
       set_color(handler, world->color[i]);
-      draw_rectangle(handler, world->x[i], world->y[i], world->width[i], world->height[i]);
+      draw_rectangle(handler, (int)world->x[i], (int)world->y[i], world->width[i], world->height[i]);
     }
   }
   if (world->game_over) {
@@ -131,6 +136,7 @@ int main() {
   World *w = ecs_init(640, 480);
   XHandler *handler = create_handler("Space Invaders", 640, 480);
   wait_for_window_map(handler);
+  load_sprites(handler);
   w->running = 1;
   XEvent event;
   const Colors cs = create_colors(handler);
@@ -184,7 +190,10 @@ int main() {
     end_time = get_time_micro();
     long time_to_wait = TARGET_FRAME_TIME_MICRO - (end_time - start_time);
     if (time_to_wait > 0) {
-      usleep(time_to_wait);
+      struct timespec req, rem;
+      req.tv_sec = 0;
+      req.tv_nsec = time_to_wait * 1000;
+      nanosleep(&req, &rem);
     }
   }
   destroy_handler(handler);

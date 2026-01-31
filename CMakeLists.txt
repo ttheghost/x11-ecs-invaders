@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-find_package(X11 REQUIRED)
+find_package(X11 REQUIRED COMPONENTS Xpm)
 
 add_executable(space_invaders
         src/main.c
@@ -14,4 +14,4 @@ add_executable(space_invaders
         src/factory.c
 )
 target_include_directories(space_invaders PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(space_invaders PRIVATE X11::X11)
+target_link_libraries(space_invaders PRIVATE X11::X11 X11::Xpm)

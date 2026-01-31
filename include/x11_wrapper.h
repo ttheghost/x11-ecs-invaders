@@ -1,5 +1,6 @@
 #pragma once
 #include <X11/Xlib.h>
+#include <X11/xpm.h>
 
 typedef struct {
   Display *display;
@@ -9,6 +10,8 @@ typedef struct {
   Pixmap buffer;
   XFontStruct *font;
   unsigned int width, height;
+  Pixmap alien_sprite;
+  Pixmap alien_mask;
 } XHandler;
 
 typedef struct {
@@ -19,7 +22,11 @@ XHandler *create_handler(const char* window_name, unsigned int w, unsigned int h
 
 void wait_for_window_map(const XHandler *handler);
 
+void load_sprites(XHandler *handler);
+
 void begin_draw(const XHandler *handler);
+
+void draw_sprite(const XHandler *handler, int x, int y);
 
 void draw_rectangle(const XHandler *handler, int x, int y, unsigned int w, unsigned int h);
 

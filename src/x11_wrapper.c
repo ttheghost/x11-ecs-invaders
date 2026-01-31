@@ -1,6 +1,7 @@
 #include "x11_wrapper.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "alien_sprite.h"
 
 XHandler *create_handler(const char* window_name, const unsigned int w, const unsigned int h) {
   XHandler *handler = malloc(sizeof(XHandler));
@@ -37,9 +38,30 @@ void wait_for_window_map(const XHandler *handler) {
   } while (event.type != MapNotify);
 }
 
+void load_sprites(XHandler *handler) {
+  XpmAttributes attr;
+  attr.valuemask = XpmReturnPixels | XpmReturnExtensions;
+
+  const int status = XpmCreatePixmapFromData(handler->display, handler->window, alien_xpm, &handler->alien_sprite, &handler->alien_mask, &attr);
+
+  if (status != XpmSuccess) {
+    fprintf(stderr, "Failed to load alien sprite.\n");
+    exit(1);
+  }
+}
+
 void begin_draw(const XHandler *handler) {
   XSetForeground(handler->display, handler->gc, BlackPixel(handler->display, handler->screen));
   XFillRectangle(handler->display, handler->buffer, handler->gc, 0, 0, handler->width, handler->height);
+}
+
+void draw_sprite(const XHandler *handler, int x, int y) {
+  XSetClipMask(handler->display, handler->gc, handler->alien_mask);
+  XSetClipOrigin(handler->display, handler->gc, x, y);
+
+  XCopyArea(handler->display, handler->alien_sprite, handler->buffer, handler->gc, 0, 0, 11, 8, x, y);
+
+  XSetClipMask(handler->display, handler->gc, None);
 }
 
 void draw_rectangle(const XHandler *handler, const int x, const int y, const unsigned int w, const unsigned int h) {
