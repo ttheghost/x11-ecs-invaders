@@ -76,7 +76,11 @@ void system_input(World* world, const Colors *cs) {
       }
       spawn_swarm(world, cs);
     }
-  };
+    return;
+  }
+  if (world->key_escape) {
+    world->running = 0;
+  }
   for (int i = 0; i < MAX_ENTITIES; i++) {
     if (world->mask[i] & COMPONENT_PLAYER) {
       world->vx[i] = 0;
