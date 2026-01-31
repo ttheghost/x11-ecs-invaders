@@ -1,0 +1,29 @@
+#pragma once
+#include <X11/Xlib.h>
+
+typedef struct {
+  Display *display;
+  Window window;
+  int screen;
+  GC gc;
+} XHandler;
+
+typedef struct {
+  XColor red, green, blue;
+} Colors;
+
+XHandler *create_handler(const char* window_name, unsigned int w, unsigned int h);
+
+void wait_for_window_map(const XHandler *handler);
+
+void clear_screen(const XHandler *handler);
+
+void set_color(const XHandler *handler, unsigned long color);
+
+void draw_rectangle(const XHandler *handler, int x, int y, unsigned int w, unsigned int h);
+
+Colors create_colors(const XHandler *handler);
+
+XColor create_color(const XHandler *handler, unsigned short red, unsigned short green, unsigned short blue);
+
+void destroy_handler(XHandler *handler);
