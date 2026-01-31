@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "ecs.h"
-#include "factory.h"
+#include "../include/ecs.h"
+#include "../include/factory.h"
 
 // extern int usleep (__useconds_t);
 
@@ -74,7 +74,7 @@ void system_input(World* world, const Colors *cs) {
           ecs_destroy_entity(world, i);
         }
       }
-      spawn_swarm(world, &cs);
+      spawn_swarm(world, cs);
     }
   };
   for (int i = 0; i < MAX_ENTITIES; i++) {

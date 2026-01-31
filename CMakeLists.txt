@@ -13,4 +13,5 @@ add_executable(space_invaders
         src/ecs.c
         src/factory.c
 )
+target_include_directories(space_invaders PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(space_invaders PRIVATE X11::X11)
