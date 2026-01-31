@@ -25,6 +25,8 @@ void draw_rectangle(const XHandler *handler, int x, int y, unsigned int w, unsig
 
 void draw_text(const XHandler *handler, const char *text, const int len, int x, int y);
 
+void draw_text_exact_x(const XHandler *handler, const char *text, const int len, int x, int y);
+
 void end_draw(const XHandler *handler);
 
 void clear_screen(const XHandler *handler);

@@ -55,6 +55,14 @@ void draw_text(const XHandler *handler, const char *text, const int len, int x, 
   XDrawString(handler->display, handler->buffer, handler->gc, draw_x, draw_y, text, len);
 }
 
+void draw_text_exact_x(const XHandler *handler, const char *text, const int len, int x, int y) {
+  if (!handler->font) return;
+  int text_height = handler->font->ascent + handler->font->descent;
+  int draw_x = x;
+  int draw_y = y + (text_height / 2);
+  XDrawString(handler->display, handler->buffer, handler->gc, draw_x, draw_y, text, len);
+}
+
 void end_draw(const XHandler *handler) {
   XCopyArea(handler->display, handler->buffer, handler->window, handler->gc, 0, 0, handler->width, handler->height, 0, 0);
   XSync(handler->display, False);

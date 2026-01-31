@@ -36,6 +36,7 @@ void system_collision(World* w) {
             ) {
             ecs_destroy_entity(w, j);
             ecs_destroy_entity(w, i);
+            w->score++;
           }
         }
       }
@@ -43,7 +44,7 @@ void system_collision(World* w) {
   }
 }
 
-void system_render(const World *world, const XHandler *handler) {
+void system_render(const World *world, const XHandler *handler, const double dt) {
   begin_draw(handler);
   for (int i = 0; i < MAX_ENTITIES; i++) {
     if (world->mask[i] & COMPONENT_SPRITE) {
@@ -58,6 +59,12 @@ void system_render(const World *world, const XHandler *handler) {
     draw_text(handler, "GAME OVER", 9, world->screen_width/2, world->screen_height/2);
     draw_text(handler, "Press ESC to Quit", 17, world->screen_width/2, world->screen_height/2 + 40);
   }
+  set_color(handler, WhitePixel(handler->display, handler->screen));
+  char buffer[20];
+  int l = sprintf(buffer, "Score: %d", world->score);
+  draw_text_exact_x(handler, buffer, l, 5, 10);
+  l = sprintf(buffer, "FPS: %.1f", 1/dt);
+  draw_text_exact_x(handler, buffer, l, 5, 30);
   end_draw(handler);
 }
 
@@ -65,6 +72,7 @@ void system_input(World* world, const Colors *cs) {
   if (world->game_over) {
     if (world->key_escape) {
       world->running = 1;
+      world->score = 0;
       world->game_over = 0;
       world->key_escape = 0;
       for (int i = 0; i < MAX_ENTITIES; i++) {
@@ -84,8 +92,11 @@ void system_input(World* world, const Colors *cs) {
   for (int i = 0; i < MAX_ENTITIES; i++) {
     if (world->mask[i] & COMPONENT_PLAYER) {
       world->vx[i] = 0;
-      if (world->key_left) world->vx[i] = -200;
-      if (world->key_right) world->vx[i] = 200;
+      if (world->key_left) {
+        if (world->x[i] - 5 > 0) world->vx[i] = -200;
+      }
+      if (world->key_right)
+        if (world->x[i] + world->width[i] + 5 < world->screen_width) world->vx[i] = 200;
       if (world->key_fire) {
         spawn_bullet(world, world->x[i] + 17, world->y[i], cs);
         world->key_fire = 0;
@@ -168,9 +179,9 @@ int main() {
       system_collision(w);
       system_enemy_ai(w);
     }
-    system_render(w, handler);
-    // printf("Delta time %.3f, fps: %.1f\n", dt, 1/dt);
-    usleep(1000); // 1 ms
+    system_render(w, handler, dt);
+    // sleep for a 60 FPS
+    usleep(16666);
   }
   destroy_handler(handler);
   ecs_destroy(w);
