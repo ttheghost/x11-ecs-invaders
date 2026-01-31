@@ -10,5 +10,7 @@ find_package(X11 REQUIRED)
 add_executable(space_invaders
         src/main.c
         src/x11_wrapper.c
+        src/ecs.c
+        src/factory.c
 )
 target_link_libraries(space_invaders PRIVATE X11::X11)
