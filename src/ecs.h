@@ -23,6 +23,7 @@ typedef struct {
   float vy[MAX_ENTITIES];
   int width[MAX_ENTITIES];
   int height[MAX_ENTITIES];
+  unsigned long color[MAX_ENTITIES];
 
   int score;
   int game_over;

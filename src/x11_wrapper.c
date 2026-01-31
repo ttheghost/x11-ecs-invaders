@@ -3,6 +3,7 @@
 
 XHandler *create_handler(const char* window_name, const unsigned int w, const unsigned int h) {
   XHandler *handler = malloc(sizeof(XHandler));
+  handler->width = w; handler->height = h;
   handler->display = XOpenDisplay(NULL);
   handler->screen = DefaultScreen(handler->display);
   handler->window = XCreateSimpleWindow(
@@ -13,6 +14,7 @@ XHandler *create_handler(const char* window_name, const unsigned int w, const un
     BlackPixel(handler->display, handler->screen)
   );
   handler->gc = XCreateGC(handler->display, handler->window, 0, NULL);
+  handler->buffer = XCreatePixmap(handler->display, handler->window, w, h, DefaultDepth(handler->display, handler->screen));
   XSelectInput(handler->display, handler->window, ExposureMask | KeyPressMask | KeyReleaseMask | StructureNotifyMask);
   XStoreName(handler->display, handler->window, window_name);
   XMapWindow(handler->display, handler->window);
@@ -26,16 +28,26 @@ void wait_for_window_map(const XHandler *handler) {
   } while (event.type != MapNotify);
 }
 
+void begin_draw(const XHandler *handler) {
+  XSetForeground(handler->display, handler->gc, BlackPixel(handler->display, handler->screen));
+  XFillRectangle(handler->display, handler->buffer, handler->gc, 0, 0, handler->width, handler->height);
+}
+
+void draw_rectangle(const XHandler *handler, const int x, const int y, const unsigned int w, const unsigned int h) {
+  XFillRectangle(handler->display, handler->buffer, handler->gc, x, y, w, h);
+}
+
+void end_draw(const XHandler *handler) {
+  XCopyArea(handler->display, handler->buffer, handler->window, handler->gc, 0, 0, handler->width, handler->height, 0, 0);
+  XSync(handler->display, False);
+}
+
 void clear_screen(const XHandler *handler) {
   XClearWindow(handler->display, handler->window);
 }
 
 void set_color(const XHandler *handler, const unsigned long color) {
   XSetForeground(handler->display, handler->gc, color);
-}
-
-void draw_rectangle(const XHandler *handler, const int x, const int y, const unsigned int w, const unsigned int h) {
-  XFillRectangle(handler->display, handler->window, handler->gc, x, y, w, h);
 }
 
 Colors create_colors(const XHandler *handler) {
@@ -55,6 +67,9 @@ Colors create_colors(const XHandler *handler) {
   colors.blue.green = 0;
   colors.blue.blue = -1;
   XAllocColor(handler->display, cm, &colors.blue);
+
+  colors.white.pixel = WhitePixel(handler->display, handler->screen);
+  colors.black.pixel = BlackPixel(handler->display, handler->screen);
   return colors;
 }
 

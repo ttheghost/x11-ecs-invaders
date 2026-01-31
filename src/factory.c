@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-int spawn_player(World *world, const int x, const int y) {
+int spawn_player(World *world, const int x, const int y, const Colors *cs) {
   const int p = ecs_create_entity(world);
   if (p == -1) {
     fprintf(stderr, "Failed to create player entity\n");
@@ -12,10 +12,11 @@ int spawn_player(World *world, const int x, const int y) {
   world->mask[p] = COMPONENT_PLAYER | COMPONENT_POS | COMPONENT_SPRITE | COMPONENT_VEL;
   world->x[p] = x; world->y[p] = y;
   world->width[p] = 40; world->height[p] = 10;
+  world->color[p] = cs->green.pixel;
   return p;
 }
 
-void spawn_swarm(World *world) {
+void spawn_swarm(World *world, const Colors *cs) {
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 11; j++) {
       const int a = ecs_create_entity(world);
@@ -27,11 +28,12 @@ void spawn_swarm(World *world) {
       world->x[a] = 40.0 * j; world->y[a] = 40.0 * i + 20;
       world->vx[a] = 60; world->vy[a] = 0;
       world->width[a] = 30; world->height[a] = 30;
+      world->color[a] = cs->white.pixel;
     }
   }
 }
 
-void spawn_bullet(World *world, const int x, const int y) {
+void spawn_bullet(World *world, const int x, const int y, const Colors *cs) {
   const int b = ecs_create_entity(world);
   if (b == -1) {
     printf("Failed to create entity\n");
@@ -44,6 +46,7 @@ void spawn_bullet(World *world, const int x, const int y) {
   world->vy[b] = -500;
   world->width[b] = 6;
   world->height[b] = 10;
+  world->color[b] = cs->red.pixel;
 }
 
 double get_delta_time() {

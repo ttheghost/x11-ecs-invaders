@@ -44,22 +44,24 @@ void system_collision(World* w) {
 }
 
 void system_render(const World *world, const XHandler *handler) {
-  clear_screen(handler);
+  begin_draw(handler);
   for (int i = 0; i < MAX_ENTITIES; i++) {
     if (world->mask[i] & COMPONENT_SPRITE) {
+      set_color(handler, world->color[i]);
       draw_rectangle(handler, world->x[i], world->y[i], world->width[i], world->height[i]);
     }
   }
+  end_draw(handler);
 }
 
-void system_input(World* world) {
+void system_input(World* world, const Colors *cs) {
   for (int i = 0; i < MAX_ENTITIES; i++) {
     if (world->mask[i] & COMPONENT_PLAYER) {
       world->vx[i] = 0;
       if (world->key_left) world->vx[i] = -200;
       if (world->key_right) world->vx[i] = 200;
       if (world->key_fire) {
-        spawn_bullet(world, world->x[i] + 17, world->y[i]);
+        spawn_bullet(world, world->x[i] + 17, world->y[i], cs);
         world->key_fire = 0;
       }
     }
@@ -89,15 +91,14 @@ void system_enemy_ai(World* world) {
 
 int main() {
   World *w = ecs_init(640, 480);
-  int player = spawn_player(w, 320, 400);
-  spawn_swarm(w);
   XHandler *handler = create_handler("Space Invaders", 640, 480);
   wait_for_window_map(handler);
   w->running = 1;
   XEvent event;
   const Colors cs = create_colors(handler);
   set_color(handler, cs.green.pixel);
-  system_render(w, handler);
+  int player = spawn_player(w, 320, 400, &cs);
+  spawn_swarm(w, &cs);
   while (w->running) {
     double dt = get_delta_time();
     if (dt > 1) continue;
@@ -113,6 +114,13 @@ int main() {
           break;
         }
         case KeyRelease: {
+          if (XEventsQueued(handler->display, QueuedAfterReading)) {
+            XEvent next;
+            XPeekEvent(handler->display, &next);
+            if (next.type == KeyPress && next.xkey.time == event.xkey.time && next.xkey.keycode == event.xkey.keycode) {
+              break;
+            }
+          }
           const KeySym keysym = XLookupKeysym(&event.xkey, 0);
           if (keysym == XK_Left) w->key_left = 0;
           if (keysym == XK_Right) w->key_right = 0;
@@ -123,7 +131,7 @@ int main() {
       }
     }
 
-    system_input(w);
+    system_input(w, &cs);
     system_movement(w, dt);
     system_collision(w);
     system_enemy_ai(w);
