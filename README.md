@@ -27,17 +27,18 @@ sudo apt install libxpm-dev
 **Fedora/CentOS**
 
 ```bash
+sudo dnf install libX11-devel
 sudo dnf install libXpm-devel
 ```
 
-### Build & Run:
+### Build & Run
 
 ```bash
-gcc -o space_invaders src/main.c src/x11_wrapper.c src/ecs.c -lX11
+gcc -o space_invaders src/main.c src/x11_wrapper.c src/ecs.c src/factory.c -lX11 -lXpm -I./include
 ./space_invaders
 ```
 
-### Build & Run (CMake):
+### Build & Run (CMake)
 
 ```bash
 cmake -B build
