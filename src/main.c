@@ -24,8 +24,22 @@ void system_collision(World* w) {
       if (w->x[i] < 0 || w->x[i] > w->screen_width
         || w->y[i] < 0 || w->y[i] > w->screen_height) {
         ecs_destroy_entity(w, i);
-        printf("Boom\n");
+        printf("Boom (%f, %f)\n", w->x[i], w->y[i]);
         fflush(stdout);
+      }
+    }
+    if (w->mask[i] & COMPONENT_BULLET) {
+      for (int j = 0; j < MAX_ENTITIES; j++) {
+        if (w->mask[j] & COMPONENT_ENEMY) {
+          if (w->x[i] < w->x[j] + w->width[j] &&
+              w->x[i] + w->width[i] > w->x[j] &&
+              w->y[i] < w->y[j] + w->height[j] &&
+              w->y[i] + w->height[i] > w->y[j]
+            ) {
+            ecs_destroy_entity(w, j);
+            ecs_destroy_entity(w, i);
+          }
+        }
       }
     }
   }
@@ -43,6 +57,7 @@ void system_render(const World *world, const XHandler *handler) {
 int main() {
   World *w = ecs_init(640, 480);
   int player = spawn_player(w, 320, 400);
+  spawn_swarm(w);
   XHandler *handler = create_handler("Space Invaders", 640, 480);
   wait_for_window_map(handler);
   w->running = 1;
@@ -52,17 +67,18 @@ int main() {
   system_render(w, handler);
   while (w->running) {
     double dt = get_delta_time();
+    if (dt > 1) continue;
 
     while (XPending(handler->display)) {
       XNextEvent(handler->display, &event);
       switch (event.type) {
         case KeyPress: {
           const KeySym keysym = XLookupKeysym(&event.xkey, 0);
-          if (keysym == XK_a) {
+          if (keysym == XK_a || keysym == XK_Left) {
             if (w->x[player] - 10 >= 0) w->x[player] -= 10;
-          } else if (keysym == XK_d) {
+          } else if (keysym == XK_d || keysym == XK_Right) {
             if (w->x[player] + 50 <= 640) w->x[player] += 10;
-          } else if (keysym == XK_q) {
+          } else if (keysym == XK_q || keysym == XK_Escape) {
             w->running = 0;
           } else if (keysym == XK_space) {
             // shut
@@ -71,12 +87,12 @@ int main() {
               printf("Failed to create entity\n");
               exit(1);
             }
-            w->mask[b] = COMPONENT_SPRITE | COMPONENT_VEL | COMPONENT_POS; //| COMPONENT_BULLET | COMPONENT_COLLIDER;
-            w->x[b] = w->x[player];
+            w->mask[b] = COMPONENT_SPRITE | COMPONENT_VEL | COMPONENT_POS | COMPONENT_BULLET | COMPONENT_COLLIDER;
+            w->x[b] = w->x[player] + 17;
             w->y[b] = w->y[player];
             w->vx[b] = 0;
-            w->vy[b] = -20;
-            w->width[b] = 5;
+            w->vy[b] = -500;
+            w->width[b] = 6;
             w->height[b] = 10;
           }
           break;

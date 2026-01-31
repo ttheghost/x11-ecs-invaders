@@ -15,6 +15,20 @@ int spawn_player(World *world, const int x, const int y) {
   return p;
 }
 
+void spawn_swarm(World *world) {
+  for (int i = 0; i < 6; i++) {
+    const int a = ecs_create_entity(world);
+    if (a == -1) {
+      fprintf(stderr, "Failed to create alien entity\n");
+      exit(-1);
+    }
+    world->mask[a] = COMPONENT_ENEMY | COMPONENT_SPRITE | COMPONENT_POS | COMPONENT_COLLIDER | COMPONENT_VEL;
+    world->x[a] = 40.0 * i + 40; world->y[a] = 20;
+    world->vy[a] = 20; world->vx[a] = 0;
+    world->width[a] = 30; world->height[a] = 30;
+  }
+}
+
 double get_delta_time() {
   static double last = 0;
   struct timespec cur;
